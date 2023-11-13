@@ -7,6 +7,8 @@ import tpi.estaciones.repositories.EstacionRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 public class EstacionServiceImpl implements EstacionService {
@@ -33,7 +35,12 @@ public class EstacionServiceImpl implements EstacionService {
 
     @Override
     public Estacion getById(Long aLong) {
-        return null;
+        Optional<Estacion> estacion = repo.findById(aLong);
+        if (estacion.isPresent()) {
+            return estacion.get();
+        } else {
+            throw new NoSuchElementException("No se encontró esa estación.");
+        }
     }
 
     @Override
