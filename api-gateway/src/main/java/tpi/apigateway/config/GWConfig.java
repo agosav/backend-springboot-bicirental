@@ -36,17 +36,17 @@ public class GWConfig {
         http.authorizeExchange(exchanges -> exchanges
                         // Establecer permisos para endpoints de estaciones
                         .pathMatchers(HttpMethod.GET, "/api/estaciones/**")
-                        .hasRole("CLIENTES")
+                        .hasAnyRole("CLIENTE", "ADMINISTRADOR")
 
                         .pathMatchers(HttpMethod.POST, "/api/estaciones/**")
-                        .hasRole("ADMINISTRADORES")
+                        .hasRole("ADMINISTRADOR")
 
                         // Establecer permisos para endpoints de alquileres
                         .pathMatchers(HttpMethod.GET, "/api/alquileres/**")
-                        .hasRole("ADMINISTRADORES")
+                        .hasRole("ADMINISTRADOR")
 
                         .pathMatchers(HttpMethod.POST, "/api/alquileres/**")
-                        .hasAnyRole("CLIENTES", "ADMINISTRADORES")
+                        .hasAnyRole("CLIENTE", "ADMINISTRADOR")
 
                         // Cualquier otra petición...
                         .anyExchange().authenticated()

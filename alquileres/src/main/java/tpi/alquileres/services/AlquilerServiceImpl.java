@@ -197,6 +197,9 @@ public class AlquilerServiceImpl implements AlquilerService {
         alquiler.setEstacionDevolucion(estacion);
         alquiler.setTarifa(determinarTarifa(alquiler));
         double monto = calcularMonto(alquiler);
+        alquiler.setMonto(monto);
+        update(alquiler);  // Guardar en la base de datos el precio en pesos argentinos
+
         if (moneda != null && !moneda.isEmpty()) {
             try {
                 monto = convertirMoneda(moneda, monto);
@@ -205,9 +208,6 @@ public class AlquilerServiceImpl implements AlquilerService {
             }
         }
         alquiler.setMonto(monto);
-
-        update(alquiler);
-
         return mapper.apply(alquiler);
     }
 
