@@ -4,8 +4,8 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/alquileres/pom.xml" />
-        <option value="$PROJECT_DIR$/estaciones/pom.xml" />
         <option value="$PROJECT_DIR$/api-gateway/pom.xml" />
+        <option value="$PROJECT_DIR$/estaciones/pom.xml" />
       </list>
     </option>
   </component>

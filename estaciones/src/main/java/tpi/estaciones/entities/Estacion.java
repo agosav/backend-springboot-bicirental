@@ -1,4 +1,4 @@
-package tpi.estaciones.entidades;
+package tpi.estaciones.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -29,6 +29,6 @@ public class Estacion {
     private double latitud;
 
     private double longitud;
-}
 
+}
 

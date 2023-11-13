@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tpi.estaciones.entidades.Estacion;
-import tpi.estaciones.entidades.dto.EstacionDto;
-import tpi.estaciones.servicios.EstacionService;
+import tpi.estaciones.entities.Estacion;
+import tpi.estaciones.entities.dto.EstacionDto;
+import tpi.estaciones.services.EstacionService;
 
 import java.util.List;
 

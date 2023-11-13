@@ -1,4 +1,4 @@
-package tpi.estaciones.entidades.dto;
+package tpi.estaciones.entities.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

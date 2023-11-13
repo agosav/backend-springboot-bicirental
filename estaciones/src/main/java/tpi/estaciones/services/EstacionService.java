@@ -1,7 +1,7 @@
-package tpi.estaciones.servicios;
+package tpi.estaciones.services;
 
-import tpi.estaciones.entidades.Estacion;
-import tpi.estaciones.entidades.dto.EstacionDto;
+import tpi.estaciones.entities.Estacion;
+import tpi.estaciones.entities.dto.EstacionDto;
 
 public interface EstacionService extends Service<Estacion, Long>{
     Estacion encontrarEstacionMasCercana(double lat, double lon);

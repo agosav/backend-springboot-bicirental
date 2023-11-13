@@ -1,9 +1,9 @@
-package tpi.estaciones.servicios;
+package tpi.estaciones.services;
 
 import org.springframework.stereotype.Service;
-import tpi.estaciones.entidades.Estacion;
-import tpi.estaciones.entidades.dto.EstacionDto;
-import tpi.estaciones.repositorios.EstacionRepository;
+import tpi.estaciones.entities.Estacion;
+import tpi.estaciones.entities.dto.EstacionDto;
+import tpi.estaciones.repositories.EstacionRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -85,3 +85,5 @@ public class EstacionServiceImpl implements EstacionService {
         add(estacion);
     }
 }
+
+
