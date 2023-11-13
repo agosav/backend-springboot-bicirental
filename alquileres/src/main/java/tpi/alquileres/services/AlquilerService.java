@@ -6,7 +6,7 @@ import tpi.alquileres.entities.dto.AlquilerDto;
 import java.util.List;
 
 public interface AlquilerService extends Service<Alquiler, Long>{
-    List<AlquilerDto> getFinalizados(String clienteId, Long estacionRetiroId, Long estacionDevolucionId);
+    List<AlquilerDto> getFinalizados(String clienteId, Long estacionRetiroId, Long estacionDevolucionId, String moneda);
     AlquilerDto finalizar(Long estacionDevolucionId, String clienteId, String moneda);
     void iniciar(Long estacionRetiroId, String clienteId);
 }

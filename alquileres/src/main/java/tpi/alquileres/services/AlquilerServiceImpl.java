@@ -66,7 +66,7 @@ public class AlquilerServiceImpl implements AlquilerService {
     }
 
     @Override
-    public List<AlquilerDto> getFinalizados(String clienteId, Long estacionRetiroId, Long estacionDevolucionId) {
+    public List<AlquilerDto> getFinalizados(String clienteId, Long estacionRetiroId, Long estacionDevolucionId, String moneda) {
 
         List<Alquiler> alquileres = alquilerRepository.findByEstado(2);
 
@@ -91,6 +91,13 @@ public class AlquilerServiceImpl implements AlquilerService {
             alquileres = alquileres.stream()
                     .filter(alquiler -> alquiler.getEstacionDevolucion() != null &&
                             alquiler.getEstacionDevolucion().getId() == estacionDevolucionId)
+                    .collect(Collectors.toList());
+        }
+
+        if (moneda != null && !moneda.isEmpty()) {
+            alquileres = alquileres
+                    .stream()
+                    .peek(alquiler -> alquiler.setMonto(convertirMoneda(moneda, alquiler.getMonto())))
                     .collect(Collectors.toList());
         }
 

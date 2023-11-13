@@ -24,8 +24,9 @@ public class AlquilerController {
     private ResponseEntity<List<AlquilerDto>> getFinalizados(
             @RequestParam(name = "clienteId", required = false) String clienteId,
             @RequestParam(name = "estacionRetiroId", required = false) Long estacionRetiroId,
-            @RequestParam(name = "estacionDevolucionId", required = false) Long estacionDevolucionId) {
-        List<AlquilerDto> values = service.getFinalizados(clienteId, estacionRetiroId, estacionDevolucionId);
+            @RequestParam(name = "estacionDevolucionId", required = false) Long estacionDevolucionId,
+            @RequestParam(name = "moneda", required = false) String moneda) {
+        List<AlquilerDto> values = service.getFinalizados(clienteId, estacionRetiroId, estacionDevolucionId, moneda);
         return ResponseEntity.ok(values);
     }
 
