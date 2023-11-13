@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tpi.alquileres.entities.Alquiler;
+import tpi.alquileres.entities.dto.AlquilerDto;
 import tpi.alquileres.entities.dto.IdClienteDto;
 import tpi.alquileres.exceptions.ClienteConAlquilerActivoException;
 import tpi.alquileres.services.AlquilerService;
@@ -19,20 +19,13 @@ public class AlquilerController {
     @Autowired
     private AlquilerService service;
 
-    // No es ninguna consigna, es solo para ir viendo los alquileres (esto anda bien)
-    @GetMapping
-    private ResponseEntity<List<Alquiler>> getAll() {
-        List<Alquiler> values = service.getAll();
-        return ResponseEntity.ok(values);
-    }
-
     // Consigna 6 (hecho)
     @GetMapping("/finalizados")
-    private ResponseEntity<List<Alquiler>> getFinalizados(
+    private ResponseEntity<List<AlquilerDto>> getFinalizados(
             @RequestParam(name = "clienteId", required = false) String clienteId,
             @RequestParam(name = "estacionRetiroId", required = false) Long estacionRetiroId,
             @RequestParam(name = "estacionDevolucionId", required = false) Long estacionDevolucionId) {
-        List<Alquiler> values = service.getFinalizados(clienteId, estacionRetiroId, estacionDevolucionId);
+        List<AlquilerDto> values = service.getFinalizados(clienteId, estacionRetiroId, estacionDevolucionId);
         return ResponseEntity.ok(values);
     }
 
@@ -53,17 +46,20 @@ public class AlquilerController {
         }
     }
 
-    // Consigna 4 (hecho pero le falta lo del tipo de cambio)
+    // Consigna 4 /finalizar/00?moneda=00
     @PostMapping("/finalizar/{estacionDevolucionId}")
-    private ResponseEntity<Alquiler> finalizar(
+    private ResponseEntity<AlquilerDto> finalizar(
             @PathVariable("estacionDevolucionId") Long estacionId,
-            @RequestBody IdClienteDto idClienteDto) {
+            @RequestParam(name = "moneda", required = false) String moneda,
+            @RequestBody IdClienteDto idCliente) {
         try {
-            Alquiler alquiler = service.finalizar(estacionId, idClienteDto.getIdCliente());
+            AlquilerDto alquiler = service.finalizar(estacionId, idCliente.getIdCliente(), moneda);
             return ResponseEntity.ok(alquiler);
 
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 }

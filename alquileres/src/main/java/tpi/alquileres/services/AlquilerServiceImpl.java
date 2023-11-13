@@ -1,20 +1,26 @@
 package tpi.alquileres.services;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import tpi.alquileres.entities.Alquiler;
 import tpi.alquileres.entities.Estacion;
 import tpi.alquileres.entities.Tarifa;
+import tpi.alquileres.entities.dto.AlquilerDto;
+import tpi.alquileres.entities.dto.MonedaRequest;
+import tpi.alquileres.entities.dto.MonedaResponse;
 import tpi.alquileres.exceptions.ClienteConAlquilerActivoException;
 import tpi.alquileres.exceptions.NoTarifasDefinidasException;
 import tpi.alquileres.repositories.AlquilerRepository;
 import tpi.alquileres.repositories.TarifaRepository;
+import tpi.alquileres.services.mappers.AlquilerDtoMapper;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -23,10 +29,12 @@ public class AlquilerServiceImpl implements AlquilerService {
 
     private final AlquilerRepository alquilerRepository;
     private final TarifaRepository tarifaRepository;
+    private final AlquilerDtoMapper mapper;
 
-    public AlquilerServiceImpl(AlquilerRepository alquilerRepository, TarifaRepository tarifaRepository) {
+    public AlquilerServiceImpl(AlquilerRepository alquilerRepository, TarifaRepository tarifaRepository, AlquilerDtoMapper mapper) {
         this.alquilerRepository = alquilerRepository;
         this.tarifaRepository = tarifaRepository;
+        this.mapper = mapper;
     }
 
     @Override
@@ -58,7 +66,7 @@ public class AlquilerServiceImpl implements AlquilerService {
     }
 
     @Override
-    public List<Alquiler> getFinalizados(String clienteId, Long estacionRetiroId, Long estacionDevolucionId) {
+    public List<AlquilerDto> getFinalizados(String clienteId, Long estacionRetiroId, Long estacionDevolucionId) {
 
         List<Alquiler> alquileres = alquilerRepository.findByEstado(2);
 
@@ -88,6 +96,7 @@ public class AlquilerServiceImpl implements AlquilerService {
 
         return alquileres
                 .stream()
+                .map(mapper)
                 .toList();
     }
 
@@ -96,6 +105,7 @@ public class AlquilerServiceImpl implements AlquilerService {
 
         Estacion estacionRetiro;
 
+        // Consultar en el microservicio si existe una estación con la id ingresada
         try {
             RestTemplate template = new RestTemplate();
             ResponseEntity<Estacion> res = template.getForEntity(
@@ -111,12 +121,14 @@ public class AlquilerServiceImpl implements AlquilerService {
             throw new NoSuchElementException("Error al buscar la estación");
         }
 
+        // Validar que no existan alquileres activos para el cliente ingresado
         Optional<Alquiler> optionalAlquiler = alquilerRepository.findByIdClienteEstadoIniciado(idCliente);
 
         if (optionalAlquiler.isPresent()) {
             throw new ClienteConAlquilerActivoException("El cliente " + idCliente + " ya tiene un alquiler activo");
         }
 
+        // Crear un alquiler
         Alquiler nuevo = new Alquiler();
         nuevo.setEstado(1);
         nuevo.setIdCliente(idCliente);
@@ -126,11 +138,35 @@ public class AlquilerServiceImpl implements AlquilerService {
         add(nuevo);
     }
 
+    public double convertirMoneda(String monedaDestino, double importe) {
+        // MonedaRequest tiene el formato {"moneda_destino": "string", "importe": 0}
+        // MonedaResponse tiene el formato {"moneda": "string", "importe": 0}
+        try {
+            RestTemplate template = new RestTemplate();
+
+            MonedaRequest requestBody = new MonedaRequest(monedaDestino, importe);
+            HttpEntity<MonedaRequest> entity = new HttpEntity<>(requestBody);
+
+            ResponseEntity<MonedaResponse> res = template.postForEntity(
+                    "http://34.82.105.125:8080/convertir", entity, MonedaResponse.class
+            );
+
+            if (res.getStatusCode().is2xxSuccessful()){
+                return Objects.requireNonNull(res.getBody()).getImporte();
+            } else {
+                throw new NoSuchElementException("Error al buscar la moneda");
+            }
+        } catch (HttpClientErrorException e) {
+            throw new NoSuchElementException("Error al procesar la moneda");
+        }
+    }
+
     @Override
-    public Alquiler finalizar(Long estacionDevolucionId, String idCliente) {
+    public AlquilerDto finalizar(Long estacionDevolucionId, String idCliente, String moneda) {
 
         Estacion estacion;
 
+        // Consultar en el microservicio si existe una estación con la id ingresada
         try {
             RestTemplate template = new RestTemplate();
             ResponseEntity<Estacion> res = template.getForEntity(
@@ -146,23 +182,33 @@ public class AlquilerServiceImpl implements AlquilerService {
             throw new NoSuchElementException("Error al buscar la estación");
         }
 
+        // Validar que exista un alquiler para el cliente ingresado
         Optional<Alquiler> optionalAlquiler = alquilerRepository.findByIdClienteEstadoIniciado(idCliente);
 
         if (optionalAlquiler.isEmpty()) {
             throw new NoSuchElementException("No se encontró el alquiler del cliente " + idCliente);
         }
 
+        // Actualizar datos del alquiler
         Alquiler alquiler = optionalAlquiler.get();
 
         alquiler.setEstado(2);
         alquiler.setFechaHoraDevolucion(LocalDateTime.now());
         alquiler.setEstacionDevolucion(estacion);
         alquiler.setTarifa(determinarTarifa(alquiler));
-        alquiler.setMonto(calcularMonto(alquiler));
+        double monto = calcularMonto(alquiler);
+        if (moneda != null && !moneda.isEmpty()) {
+            try {
+                monto = convertirMoneda(moneda, monto);
+            } catch (NoSuchElementException e) {
+                throw new NoSuchElementException("No se encontró la moneda " + moneda);
+            }
+        }
+        alquiler.setMonto(monto);
 
         update(alquiler);
 
-        return alquiler;
+        return mapper.apply(alquiler);
     }
 
     public Tarifa determinarTarifa(Alquiler alquiler) {
