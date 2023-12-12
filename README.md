@@ -68,3 +68,4 @@ Todos los endpoints están documentados utilizando Swagger. Por ejemplo: http://
 ## Aclaraciones Finales
 
 - En la raíz del proyecto está el pdf provisto por la cátedra con la consigna completa del Trabajo Práctico.
+- Nota final del trabajo: 100%
